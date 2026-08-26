@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Language {
+  EN
+  FR
+  NL
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  username      String        @unique
+  password_hash String?
+  ft_id         Int?          @unique
+  ft_login      String?
+  avatar_url    String?
+  displayName   String?
+  bio           String?
+  isOnline      Boolean       @default(false)
+  lastSeenAt    DateTime?
+  friendships   Friendship[]  @relation("UserFriendships")
+  friendOf      Friendship[]  @relation("FriendOfUser")
+  prefLang      Language
+}
+
+model Friendship {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  friendId   Int
+  status     String   @default("accepted")
+  createdAt  DateTime @default(now())
+  user       User     @relation("UserFriendships", fields: [userId], references: [id])
+  friend     User     @relation("FriendOfUser", fields: [friendId], references: [id])
+  @@unique([userId, friendId])
+}
