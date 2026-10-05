@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useAuth } from '@/components/useAuth';
-import AppHeader from '@/components/AppHeader.vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-    
+    import { ref, onMounted } from 'vue';
+    import { useAuth } from '@/components/utils/useAuth';
+    import AppHeader from '@/components/AppHeader.vue';
+    import { useRoute, useRouter } from 'vue-router';
+    import { useI18n } from 'vue-i18n';
     
     const { t } = useI18n();
 
@@ -23,9 +22,15 @@ import { useI18n } from 'vue-i18n';
 
     const emit = defineEmits<{ success: [] }>();
 
+    const queryErrors: Record<string, string> = {
+        username_taken: 'error.usernameTaken',
+        already_connected: 'error.alreadyConnected',
+    };
+
     onMounted(() => {
-        if (route.query.error === 'username_taken') {
-            errorKey.value = 'error.usernameTaken';
+        const key = queryErrors[route.query.error as string];
+        if (key) {
+            errorKey.value = key;
             router.replace({ path: '/login' });
         }
     });
@@ -33,11 +38,8 @@ import { useI18n } from 'vue-i18n';
     async function handleLogin() {
         errorKey.value = '';
         loading.value = true;
-
         const result = await login(email.value, password.value);
-
         loading.value = false;
-
         if (!result?.success) {
             errorKey.value = result?.error ?? 'Login failed';
             return;
@@ -64,31 +66,38 @@ import { useI18n } from 'vue-i18n';
 
         <div v-if="!showLoginOptions" class="btn-group">
             <button class="btn btn-block btn-white" @click="showLoginOptions = true">
-                {{ t('auth.login') }} </button>
+                {{ t('auth.login') }} 
+            </button>
 
             <router-link to="/register" class="btn btn-block btn-white">
-                 {{ t('auth.createAccount') }} </router-link>
+                 {{ t('auth.createAccount') }}
+            </router-link>
 
             <router-link to="/home" class="btn btn-block btn-teal">
-                 {{ t('auth.continueAsGuest') }} </router-link>
+                 {{ t('auth.continueAsGuest') }} 
+            </router-link>
         </div>
 
         <div v-if="showLoginOptions" class="btn-group">
             <button class="btn btn-block btn-white" @click="loginWith42">
-                {{ t('auth.loginWith42') }} </button>
+                {{ t('auth.loginWith42') }} 
+            </button>
 
             <button v-if="!showEmailLogin" class="btn btn-block btn-white" @click="showEmailLogin=true">
-                {{ t('auth.loginWithEmail') }} </button>
+                {{ t('auth.loginWithEmail') }}
+            </button>
 
             <form v-if="showEmailLogin" class="login-form" @submit.prevent="handleLogin">
                 <input v-model="email" type="email" class="login-input" placeholder="Email" required />
                 <input v-model="password" type="password" class="login-input" placeholder="Password" required />
                 <button class="btn btn-block btn-white" type="submit" :disabled="loading">
-                    {{ loading ? t('auth.loggingIn') : t('auth.login') }} </button>
+                    {{ loading ? t('auth.loggingIn') : t('auth.login') }}
+                </button>
             </form>
 
             <button class="btn btn-block btn-teal" @click="showLoginOptions = false; showEmailLogin = false">
-                {{ t('common.back') }} </button>
+                {{ t('common.back') }}
+            </button>
         </div>
     </main>
 </template>

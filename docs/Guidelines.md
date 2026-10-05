@@ -29,11 +29,3 @@ Utilisation de conventional commits
 fix: "   " - pour regler un bug
 feat: "   " - pour ajouter une feature
 MAJOR CHANGE: "    " - pour un commit qui implique de gros changements
-
-
-Denis: 
-
-1) passer en https
-2) creation page Form.vue pour creer new user
-3) verifier DB (new user, etc)
-4) hash + sal du mdp

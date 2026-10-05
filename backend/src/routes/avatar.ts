@@ -12,13 +12,19 @@ const uploadsDir = path.join(process.cwd(), 'uploads', 'avatars');
 export async function avatarRoutes(app: FastifyInstance) {
   app.post('/users/me/avatar', { preHandler: verifyAuth }, async (request, reply) => {
 
-    try {
       const data = await request.file();
 
       if (!data)
        return reply.status(400).send({ error: 'No file provided' });
 
-      const buffer = await data.toBuffer();
+      let buffer;
+      try{
+        buffer = await data.toBuffer();
+      } catch (err) {
+        if (err instanceof app.multipartErrors.RequestFileTooLargeError)
+          return reply.status(413).send({ error: 'File too large' });
+        throw err;
+      }
 
       const detectedType = await fileTypeFromBuffer(buffer);
       if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime))
@@ -44,12 +50,6 @@ export async function avatarRoutes(app: FastifyInstance) {
       }
 
       return reply.send({ avatar_url: updatedUser.avatar_url });
-    } catch (err){
-        if (err instanceof app.multipartErrors.RequestFileTooLargeError) {
-          return reply.status(413).send({ error: 'File too large' });
-        }
-        app.log.error(err);
-          return reply.status(500).send({ error: 'Avatar upload failed' });
-    }
+        
   });
 }

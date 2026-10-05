@@ -2,20 +2,23 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Pong from '../views/HardPong.vue';
 import Login from '../views/Login.vue';
-import Profile from '../views/Profile.vue';
-import Coquin from '../components/Coquin.vue';
-import { useAuth } from '@/components/useAuth';
+import Coquin from '@/views/Coquin.vue';
+import Test from '../views/Test.vue';
+import Register from '@/views/Form.vue';
+import { useAuth } from '@/components/utils/useAuth.ts';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', name: 'root', component: Login },
     { path: '/login', name: 'login', component: Login, meta: { guestOnly: true } },
-    { path: '/register', name: 'register', component: () => import('../components/Form.vue'), meta: { guestOnly: true } },
+    { path: '/register', name: 'register', component: Register, meta: { guestOnly: true } },
     { path: '/home', name: 'home', component: Home },
     { path: '/pong', name: 'pong', component: Pong },
-    { path: '/profile', name: 'profile', component: Profile, meta: { requiresAuth: true } },
+    { path: '/chess', name: 'chess', component: () => import('../views/Chess.vue') },
     { path: '/nice-try', name: 'coquin', component: Coquin },
+    { path: '/test', name: 'test', component: Test, meta: { requiresAuth: true } },
+    { path: '/debug-chat', component: () => import('@/views/DebugChat.vue') }
   ],
 });
 

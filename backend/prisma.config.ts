@@ -1,15 +1,16 @@
-import { config } from 'dotenv'
-import path from 'node:path'
-config({ path: path.resolve(__dirname, '../.env') })
-
 import { defineConfig } from 'prisma/config'
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL manquante — lancer les commandes Prisma dans le conteneur')
+}
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-    migrations: {
+  migrations: {
     path: 'prisma/migrations',
+    seed: 'tsx prisma/seed.ts',
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? '',
+    url: process.env.DATABASE_URL,
   },
 })

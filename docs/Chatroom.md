@@ -1,0 +1,1 @@
+ils devront lancer npx prisma migrate dev puis npx prisma db seed après le pull.

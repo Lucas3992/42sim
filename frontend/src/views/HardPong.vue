@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import HeartIcon from '@/assets/svg/HeartIcon.vue';
 import StarIcon from '@/assets/svg/StarIcon.vue';
-import bgMusic from '@/assets/sounds/pongsong.mp3';
+import bgMusic from '@/assets/sounds/musics/pongsong.mp3';
 import gameOverSound from '@/assets/sounds/gameover.mp3';
 import screamerVideo from '@/assets/video/screamer.mp4';
 import AppHeader from '@/components/AppHeader.vue';
@@ -321,7 +321,13 @@ import { useI18n } from 'vue-i18n';
 			<div class="lives-display"><HeartIcon /> : {{ lives }}</div>
     	</div>
 			
-		<canvas ref="canvas" width="800" height="400"></canvas>
+		<div class="imac">
+		<div class="imac-frame">
+			<canvas ref="canvas" width="800" height="400"></canvas>
+		</div>
+		<div class="imac-stand"></div>
+		<div class="imac-base"></div>
+		</div>
 
 		<div class = "waitforclick" @click="assetsReady && startGame()" v-if="gameState === 'waitforclick'">
 			{{ t('common.clickHere') }} </div>
@@ -427,4 +433,38 @@ import { useI18n } from 'vue-i18n';
 		cursor: pointer;
 	}
 
+	.imac {
+		display: inline-block;
+		position: relative;
+	}
+
+	.imac-frame {
+		background: linear-gradient(180deg, #e4e7ea, #d4d8db);
+		border-radius: 24px;
+		padding: 24px 24px 48px;
+		box-shadow:
+			0 20px 40px rgba(0, 0, 0, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.6);
+	}
+
+	.imac-frame canvas {
+		display: block;
+		border-radius: 4px;
+		width: 100%;
+	}
+
+	.imac-stand {
+		width: 56px;
+		height: 50px;
+		background: linear-gradient(#e2e5e8, #b9bec3);
+		margin: 0 auto;
+	}
+
+	.imac-base {
+		width: 200px;
+		height: 12px;
+		background: linear-gradient(#c7cbcf, #9ea3a8);
+		border-radius: 6px;
+		margin: 0 auto;
+	}
 </style> 

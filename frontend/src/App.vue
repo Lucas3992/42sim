@@ -1,14 +1,27 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue';
-  import { useAuth } from '@/components/useAuth';
+	import { onMounted, watch } from 'vue';
+	import { useAuth } from '@/components/utils/useAuth';
+	import { useSocket } from '@/components/utils/useSocket';
+	import { useFriends } from '@/components/utils/useFriends';
 
-  const { fetchUser } = useAuth();
+	const { fetchUser, isAuthenticated } = useAuth();
+	const { connect, disconnect } = useSocket();
+	const { clearFriendsState } = useFriends();
 
-  onMounted(() => {
-    fetchUser();
-  });
+	watch(isAuthenticated, (loggedIn) => {
+		if (loggedIn)
+			connect();
+		else {
+			disconnect();
+			clearFriendsState();
+		}
+	}, { immediate: true });
+
+	onMounted(() => {
+		fetchUser();
+	});
 </script>
 
 <template>
-  <router-view />
+	<router-view />
 </template>

@@ -3,6 +3,7 @@ import { prisma } from '../prisma.js';
 import { hashPassword } from '../utils/password.js';
 import { generateUsernameSuggestions } from '../utils/username.js';
 import { registerSchema } from '../schemas/auth.schema.js';
+import { setSessionCookie } from '../utils/session.js';
 
 
 interface RegisterBody {
@@ -19,15 +20,8 @@ function sanitizeLang(raw: unknown): 'EN' | 'FR' | 'NL' {
 
 export async function registerRoutes(app: FastifyInstance) {
   app.post('/auth/register', async (request, reply) => {
-    try {
-        const result = registerSchema.safeParse(request.body);
 
-        if (!result.success) {
-            const firstIssue = result.error.issues[0];
-            return reply.status(400).send({ error: firstIssue?.message ?? 'Invalid request body', });
-        }
-
-        const { email, password, username, lang } = result.data;
+        const { email, password, username, lang } = registerSchema.parse(request.body);
         const safeLang = sanitizeLang(lang);
         let user: string;
 
@@ -36,7 +30,7 @@ export async function registerRoutes(app: FastifyInstance) {
             if (tmp[0])
                 user = tmp[0];
             else {
-                reply.status(400).send({error: "Not  avalid email" });
+                reply.status(400).send({error: "Not  a valid email" });
                 return;
             }
         } 
@@ -68,24 +62,8 @@ export async function registerRoutes(app: FastifyInstance) {
             },
         });
 
-        const jwtToken = app.jwt.sign(
-            { userId: userFinal.id , username: userFinal.username },
-            { expiresIn: '7d' }
-        );
-
-        reply
-            .setCookie('token', jwtToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7,
-            })
-            .status(201).send({ msg: "User succesfully created." });
-        }
-        catch (err) {
-            app.log.error(err);
-            reply.status(500).send({ error: "User creation failed" });
-        }
+        setSessionCookie(app, reply, userFinal)
+			.status(201)
+			.send({ msg: "User succesfully created." });
     });
 }

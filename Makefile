@@ -6,13 +6,14 @@ all: up
 build:
 	$(COMPOSE) build
 
+# pour lancer avec seed.ts (genere 5 comptes, voir readMe)
+seed:
+	$(COMPOSE) exec backend npx prisma db seed
+
 # Démarre les conteneurs en arrière-plan (build automatique si besoin)
 up:
 	$(COMPOSE) up -d --build
-
-# Démarre les conteneurs en mode "attaché" (logs visibles dans le terminal)
-dev:
-	$(COMPOSE) up --build
+	$(MAKE) seed
 
 # Arrête et supprime les conteneurs (garde images/volumes)
 down:
@@ -26,9 +27,6 @@ stop:
 restart:
 	$(COMPOSE) restart
 
-# Arrêt complet + relance propre (utile après un changement de config Docker)
-re: fclean up
-
 # Supprime conteneurs + images + réseaux liés au projet
 clean:
 	$(COMPOSE) down --rmi all --remove-orphans
@@ -37,6 +35,9 @@ clean:
 fclean: clean
 	$(COMPOSE) down -v --remove-orphans
 	docker volume prune -f
+
+# Arrêt complet + relance propre (utile après un changement de config Docker)
+re: fclean up
 
 # Affiche les logs en direct de tous les services
 logs:
@@ -48,4 +49,4 @@ ps:
 
 status: ps
 
-.PHONY: all build up down stop restart re clean fclean logs ps frontend backend status
+.PHONY: all build up down stop restart re clean fclean logs ps frontend backend status seed

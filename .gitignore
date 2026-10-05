@@ -10,3 +10,4 @@ ft_transcendence
 frontend/node_modules
 backend/node_modules
 certs/
+backend/dist/

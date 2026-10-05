@@ -1,29 +1,33 @@
-// backend/src/routes/login.ts
-
 import type { FastifyInstance } from 'fastify';
 import { prisma } from '../prisma.js';
 import { verifyPassword } from '../utils/password.js';
 import { loginSchema } from '../schemas/auth.schema.js';
+import { isOnline } from '../utils/connectionRegistry.js';
+import { setSessionCookie } from '../utils/session.js';
 
 interface LoginBody {
-  email: string;
-  password: string;
+	email: string;
+    password: string;
 }
 
 export async function loginRoutes(app: FastifyInstance) {
-  app.post('/auth/login', async (request, reply) => {
-    try {
-        const result = loginSchema.safeParse(request.body);
-
-        if (!result.success)
-            return reply.status(400).send({error: result.error.issues[0]?.message });
-
-        const {email, password} = result.data;
-
+  app.post('/auth/login', {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '15 minutes',
+        hook: 'preHandler',
+        keyGenerator: (req: any) => {
+          const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase() : 'unknown';
+          return `${req.ip}:${email}`;
+        },
+      },
+    },
+  }, async (request, reply) => {
+        const { email, password } = loginSchema.parse(request.body);
         const user = await prisma.user.findUnique({ where: {email: email}});
         
-        if (!user)
-        {
+        if (!user) {
             reply.status(400).send({error: "Wrong login/password." });
             return;
         }
@@ -34,31 +38,19 @@ export async function loginRoutes(app: FastifyInstance) {
         }
         else {
             let hash: string = user.password_hash; 
-            if ( await verifyPassword(password, hash) == false)
-            {
+            if ( await verifyPassword(password, hash) == false) {
                 reply.status(400).send({error: "Wrong password." });
                 return;
             }
         }
 
-        const jwtToken = app.jwt.sign(
-            { userId: user.id , username: user.username},
-            { expiresIn: '7d' }
-        );
+		if (isOnline(user.id)) {
+			reply.status(409).send({ error: 'error.alreadyConnected' });
+			return;
+		}
 
-        reply
-            .setCookie('token', jwtToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7,
-            })
-            .status(200).send({msg: "Login successfull."});
-        }
-        catch (err) {
-            app.log.error(err);
-            reply.status(500).send({ error: 'Login failed' });
-    }
-  })
+		setSessionCookie(app, reply, user)
+			.status(200)
+			.send({ msg: "Login successfull." });
+		})
 };
